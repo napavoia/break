@@ -1,39 +1,54 @@
-use std::time::Duration;
+use mlua::Lua;
+use sdl2::{Sdl, video::Window as SdlWindow};
+use std::path::Path;
 
-use sdl2::{Sdl, event::Event, keyboard::Keycode, pixels::Color, render::Canvas, video::Window};
+pub use self::window::Window;
+use crate::{
+    error::Result,
+    game::{Game, Status},
+};
 
 pub mod builder;
 pub mod error;
+mod window;
 
 pub struct Context {
-    canvas: Canvas<Window>,
-    sdl: Sdl,
+    game: Shared<Game>,
+    lua: Lua,
+    _sdl: Sdl,
 }
 
 impl Context {
-    pub fn run(mut self) {
-        let mut event_pump = self.sdl.event_pump().unwrap();
+    fn init(_sdl: Sdl, window: SdlWindow) -> Result<Self> {
+        let canvas = window.into_canvas().build()?;
+        let event = _sdl.event_pump()?;
+        let canvas = Window::from(canvas);
+        let game = shared(Game::new(canvas, event));
 
-        'running: loop {
-            // Handle events
-            for event in event_pump.poll_iter() {
-                match event {
-                    Event::Quit { .. }
-                    | Event::KeyDown {
-                        keycode: Some(Keycode::Escape),
-                        ..
-                    } => break 'running,
-                    _ => {}
-                }
+        let lua = Lua::new();
+        lua.globals().set("game", game.clone())?;
+
+        Ok(Self { lua, game, _sdl })
+    }
+
+    pub fn run<P: AsRef<Path>>(&mut self, main: P) -> Status {
+        let result = self.lua.load(main.as_ref()).exec();
+
+        dbg!(&result);
+
+        loop {
+            let mut game = self.game.borrow_mut();
+            if let Some(runtime) = game.tick() {
+                dbg!(&runtime);
+                return Some(runtime);
             }
-
-            // Render
-            self.canvas.set_draw_color(Color::RGB(0, 255, 255));
-            self.canvas.clear();
-            self.canvas.present();
-
-            // Control frame rate (approx 60 FPS)
-            std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
         }
     }
+}
+
+use std::{cell::RefCell, rc::Rc};
+
+pub type Shared<T> = Rc<RefCell<T>>;
+pub fn shared<T>(v: T) -> Shared<T> {
+    Rc::new(RefCell::new(v))
 }
