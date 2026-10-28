@@ -1,26 +1,27 @@
 use sdl2::{IntegerOrSdlError, video::WindowBuildError};
 
-#[derive(Debug, PartialEq, PartialOrd)]
-pub enum Error {
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub enum BuilderError {
     HeightOverflows(u32),
     WidthOverflows(u32),
     IntegerOverflows(&'static str, u32),
     InvalidTitle,
+    NulError,
     /// Cannot initialize `Sdl` from more than one thread.
     MultipleInit,
     SdlError(String),
 }
 
-impl From<String> for Error {
+impl From<String> for BuilderError {
     fn from(value: String) -> Self {
         match value.as_str() {
-            "Cannot initialize `Sdl` from more than one thread." => Error::MultipleInit,
-            _ => Error::SdlError(value),
+            "Cannot initialize `Sdl` from more than one thread." => BuilderError::MultipleInit,
+            _ => BuilderError::SdlError(value),
         }
     }
 }
 
-impl From<WindowBuildError> for Error {
+impl From<WindowBuildError> for BuilderError {
     fn from(value: WindowBuildError) -> Self {
         match value {
             WindowBuildError::HeightOverflows(v) => Self::HeightOverflows(v),
@@ -31,7 +32,7 @@ impl From<WindowBuildError> for Error {
     }
 }
 
-impl From<IntegerOrSdlError> for Error {
+impl From<IntegerOrSdlError> for BuilderError {
     fn from(value: IntegerOrSdlError) -> Self {
         match value {
             IntegerOrSdlError::IntegerOverflows(v1, v2) => Self::IntegerOverflows(v1, v2),
