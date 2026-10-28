@@ -16,6 +16,11 @@ impl<T, const N: usize> Vector<T, N> {
         self.data.len()
     }
 
+    #[inline]
+    pub const fn is_empty(&self) -> bool {
+        self.data.len() == 0
+    }
+
     /// Sets the element at the given index to a new value.
     ///
     /// # Errors
@@ -127,6 +132,12 @@ impl<T, const N: usize> Index<usize> for Vector<T, N> {
     }
 }
 
+impl<T, const N: usize> IndexMut<Axis> for Vector<T, N> {
+    fn index_mut(&mut self, index: Axis) -> &mut Self::Output {
+        &mut self.data[index as usize]
+    }
+}
+
 impl<T, const N: usize> Index<Axis> for Vector<T, N> {
     type Output = T;
 
@@ -183,10 +194,40 @@ impl_split!(3;
     3 => 1
 );
 
+/// A coordinate axis in a multidimensional vector.
+///
+/// Used as an index to access components of a [`Vector`] via the
+/// [`Index`] implementation. Discriminant values correspond to the
+/// position of the component in the `data` array (see `#[repr(usize)]`).
+///
+/// # Example
+///
+/// ```
+/// use r#break::math::{Vector, Axis};
+///
+/// let mut v = Vector::<f32, 4>::default();
+/// v[Axis::X] = 1.0;
+/// v[Axis::Y] = 2.0;
+/// v[Axis::Z] = 3.0;
+/// v[Axis::W] = 4.0;
+///
+/// assert_eq!(v[Axis::X], 1.0);
+/// assert_eq!(v[Axis::W], 4.0);
+/// ```
 #[repr(usize)]
 pub enum Axis {
+    /// The X axis (index `0`).
     X = 0,
+    /// The Y axis (index `1`).
     Y = 1,
+    /// The Z axis (index `2`).
     Z = 2,
+    /// The W axis (index `3`).
     W = 3,
+}
+
+impl From<Axis> for usize {
+    fn from(val: Axis) -> Self {
+        val as usize
+    }
 }
