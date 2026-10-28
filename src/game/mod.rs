@@ -118,8 +118,6 @@ impl Game {
 
         self.objects.insert(index, Object::new(table));
 
-        dbg!(&self.objects);
-
         index
     }
 }
