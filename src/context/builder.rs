@@ -1,7 +1,8 @@
 use crate::context::Context;
+use crate::error::Error;
 use crate::math::Axis::*;
 use crate::vector;
-use crate::{context::error::Error, math::Size};
+use crate::{context::error::BuilderError, math::Size};
 use sdl2::VideoSubsystem;
 use sdl2::video::Window;
 
@@ -16,19 +17,14 @@ impl ContextBuilder {
         self
     }
 
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     pub fn build(self) -> Result<Context, Error> {
         let sdl = sdl2::init()?;
 
         let video = sdl.video()?;
+
         let window = self.window.build(&video)?;
 
-        let canvas = window.into_canvas().build()?;
-
-        Ok(Context { canvas, sdl })
+        Context::init(sdl, window)
     }
 }
 
@@ -47,14 +43,13 @@ pub struct WindowBuilder {
 }
 
 impl WindowBuilder {
-    fn build(self, video: &VideoSubsystem) -> Result<Window, Error> {
+    fn build(self, video: &VideoSubsystem) -> Result<Window, BuilderError> {
         let mut window = video.window(&self.title, self.size[X], self.size[Y]);
         window.position_centered();
 
-        self.position.and_then(|pos| {
+        if let Some(pos) = self.position {
             window.position(pos[X], pos[Y]);
-            Some(())
-        });
+        }
 
         self.fullscreen.then(|| {
             window.fullscreen();
