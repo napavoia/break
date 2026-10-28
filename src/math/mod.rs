@@ -2,7 +2,6 @@ mod aliases;
 
 pub mod error;
 pub mod num;
-pub mod transform;
 mod vector;
 
 pub use aliases::*;
