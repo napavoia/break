@@ -1,12 +1,13 @@
 [package]
 name = "break"
-version = "0.0.1-beta"
+version = "0.0.2-beta"
 edition = "2024"
 description = "Take a Break for the game"
 authors = ["napavoia"]
 license = "MIT"
 
 [dependencies]
+mlua = {version="0.12.2", features = ["luajit", "vendored", "userdata-wrappers"]}
 sdl2 = "0.38.0"
 
 [dev-dependencies]
