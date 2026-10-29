@@ -41,10 +41,18 @@ impl Color {
     pub const MAGENTA: Color = Color::RGBA(255, 0, 255, 255);
     pub const YELLOW: Color = Color::RGBA(255, 255, 0, 255);
     pub const CYAN: Color = Color::RGBA(0, 255, 255, 255);
+
+    pub const ZERO: Color = Color::RGBA(0, 0, 0, 0);
 }
 
 impl From<Color> for sdl2::pixels::Color {
     fn from(val: Color) -> Self {
         val.0
+    }
+}
+
+impl ToString for Color {
+    fn to_string(&self) -> String {
+        format!("Color[{},{},{},{}]", self.0.r, self.0.g, self.0.b, self.0.a)
     }
 }
