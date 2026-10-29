@@ -1,8 +1,11 @@
-use std::sync::Arc;
+use std::{fmt::Debug, sync::Arc};
 
 use mlua::{FromLua, IntoLua, Lua, MultiValue, UserData, Value};
 
-use crate::math::{Axis, Vector, num::Number};
+use crate::{
+    impl_display,
+    math::{Axis, Vector, ZeroVector, num::Number},
+};
 
 impl<T: Number, const N: usize> UserData for Vector<T, N> {
     fn add_fields<F: mlua::prelude::LuaUserDataFields<Self>>(fields: &mut F) {
@@ -18,14 +21,7 @@ impl<T: Number, const N: usize> UserData for Vector<T, N> {
     }
 
     fn add_methods<M: mlua::prelude::LuaUserDataMethods<Self>>(methods: &mut M) {
-        methods.add_function("new2d", |_, values: MultiValue| new::<f64, 2>(values));
-        methods.add_function("new3d", |_, values: MultiValue| new::<f64, 3>(values));
-        methods.add_function("new4d", |_, values: MultiValue| new::<f64, 4>(values));
-    }
-
-    fn register(registry: &mut mlua::prelude::LuaUserDataRegistry<Self>) {
-        Self::add_fields(registry);
-        Self::add_methods(registry);
+        zero_methods(methods);
     }
 }
 
@@ -85,4 +81,25 @@ fn get<T: Number, const N: usize>(
         Some(number) => number.into_lua(lua),
         None => Value::Nil.into_lua(lua),
     }
+}
+
+impl UserData for ZeroVector {
+    fn add_fields<F: mlua::prelude::LuaUserDataFields<Self>>(_: &mut F) {}
+
+    fn add_methods<M: mlua::prelude::LuaUserDataMethods<Self>>(methods: &mut M) {
+        zero_methods(methods);
+    }
+}
+
+pub fn zero_methods<
+    T: Debug,
+    const N: usize,
+    M: mlua::prelude::LuaUserDataMethods<Vector<T, N>>,
+>(
+    methods: &mut M,
+) {
+    impl_display!(methods);
+    methods.add_function("new2d", |_, values: MultiValue| new::<f64, 2>(values));
+    methods.add_function("new3d", |_, values: MultiValue| new::<f64, 3>(values));
+    methods.add_function("new4d", |_, values: MultiValue| new::<f64, 4>(values));
 }
