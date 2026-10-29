@@ -9,6 +9,7 @@ license = "MIT"
 [dependencies]
 mlua = {version="0.12.2", features = ["luajit", "vendored", "userdata-wrappers"]}
 sdl2 = "0.38.0"
+tracing = "0.1.44"
 
 [dev-dependencies]
 criterion = { version = "0.8.2", features = ["html_reports"] }
