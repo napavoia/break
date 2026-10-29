@@ -1,4 +1,5 @@
 use std::{
+    fmt::Debug,
     ops::{Index, IndexMut},
     slice::SliceIndex,
 };
@@ -146,6 +147,12 @@ impl<T, const N: usize> Index<Axis> for Vector<T, N> {
     }
 }
 
+impl<T: Debug, const N: usize> ToString for Vector<T, N> {
+    fn to_string(&self) -> String {
+        format!("Vector{:?}", self.data)
+    }
+}
+
 macro_rules! impl_split {
     (2; $in:expr => $out:expr) => {
         impl<T: Copy> Vector<T, $in> {
@@ -230,4 +237,9 @@ impl From<Axis> for usize {
     fn from(val: Axis) -> Self {
         val as usize
     }
+}
+
+#[inline]
+pub const fn zeroed() -> Vector<u8, 0> {
+    Vector { data: [] }
 }
