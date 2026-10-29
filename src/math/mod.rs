@@ -2,7 +2,7 @@ mod aliases;
 
 pub mod error;
 pub mod num;
-mod vector;
+pub mod vector;
 
 pub use aliases::*;
 pub use vector::{Axis, Vector};
