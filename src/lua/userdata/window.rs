@@ -1,4 +1,4 @@
-use crate::{add_method, color::Color, context::Window, math::Vector2};
+use crate::{color::Color, context::Window, impl_method, math::Vector2};
 use mlua::{ErrorContext, MultiValue, UserData};
 
 impl UserData for Window {
@@ -17,30 +17,25 @@ impl UserData for Window {
     }
 
     fn add_methods<M: mlua::prelude::LuaUserDataMethods<Self>>(methods: &mut M) {
-        add_method!(methods;; set_fullscreen(flag: bool));
-        add_method!(methods;; set_size(w: u32, h: u32));
-        add_method!(methods;; set_bordered(bordered: bool) -> Ok);
-        add_method!(methods;; set_resizable(resizable: bool) -> Ok);
-        add_method!(methods;; set_position(position: Vector2<i64>) -> Ok);
-        add_method!(methods;; set_color(color: Color) -> Ok);
-        add_method!(methods; show);
-        add_method!(methods; hide);
-        add_method!(methods; raise);
-        add_method!(methods; maximize);
-        add_method!(methods; minimize);
-        add_method!(methods; restore);
+        impl_method!(methods;; set_fullscreen(flag: bool));
+        impl_method!(methods;; set_size(w: u32, h: u32));
+        impl_method!(methods;; set_bordered(bordered: bool) -> Ok);
+        impl_method!(methods;; set_resizable(resizable: bool) -> Ok);
+        impl_method!(methods;; set_position(position: Vector2<i64>) -> Ok);
+        impl_method!(methods;; set_color(color: Color) -> Ok);
+        impl_method!(methods; show);
+        impl_method!(methods; hide);
+        impl_method!(methods; raise);
+        impl_method!(methods; maximize);
+        impl_method!(methods; minimize);
+        impl_method!(methods; restore);
 
         // todo
-        add_method!(methods; "set_icon");
+        impl_method!(methods; "set_icon");
 
         methods.add_method_mut("set_title", |_, this, (title,): (String,)| {
             this.set_title(&title)
                 .map_err(|e| e.external().context("set_title"))
         });
-    }
-
-    fn register(registry: &mut mlua::prelude::LuaUserDataRegistry<Self>) {
-        Self::add_fields(registry);
-        Self::add_methods(registry);
     }
 }
