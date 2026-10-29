@@ -1,44 +1,49 @@
 use mlua::{FromLua, Lua, UserData, Value};
 
-use crate::{Color, consts, getset};
+use crate::{Color, impl_const, impl_display, impl_gs};
 
 impl UserData for Color {
     fn add_fields<F: mlua::prelude::LuaUserDataFields<Self>>(fields: &mut F) {
-        getset!(getset fields; r is ColorValue);
-        getset!(getset fields; g is ColorValue);
-        getset!(getset fields; b is ColorValue);
-        getset!(getset fields; a is ColorValue);
+        impl_gs!(getset fields; r is ColorValue);
+        impl_gs!(getset fields; g is ColorValue);
+        impl_gs!(getset fields; b is ColorValue);
+        impl_gs!(getset fields; a is ColorValue);
     }
 
     fn add_methods<M: mlua::prelude::LuaUserDataMethods<Self>>(methods: &mut M) {
-        methods.add_method(
+        impl_display!(methods);
+
+        methods.add_function("subpixel", |_, v: Value| match v {
+            Value::Integer(i) => Ok(Value::Integer(i.clamp(0, 255))),
+            Value::Number(i) => Ok(Value::Integer((i.clamp(0.0, 1.0) * 255.0) as i64)),
+            _ => {
+                return Err(mlua::Error::UserDataTypeMismatch);
+            }
+        });
+
+        methods.add_function(
             "rgb",
-            |_, _, (r, g, b): (ColorValue, ColorValue, ColorValue)| {
+            |_, (r, g, b): (ColorValue, ColorValue, ColorValue)| {
                 Ok(color(r, g, b, ColorValue(0xff)))
             },
         );
-        methods.add_method(
+        methods.add_function(
             "rgba",
-            |_, _, (r, g, b, a): (ColorValue, ColorValue, ColorValue, ColorValue)| {
+            |_, (r, g, b, a): (ColorValue, ColorValue, ColorValue, ColorValue)| {
                 Ok(color(r, g, b, a))
             },
         );
-        methods.add_method("invert", |_, this, _: Value| Ok(this.invert()));
+        methods.add_function("invert", |_, color: Color| Ok(color.invert()));
 
-        consts!(methods; WHITE);
-        consts!(methods; BLACK);
-        consts!(methods; GREY);
-        consts!(methods; RED);
-        consts!(methods; GREEN);
-        consts!(methods; BLUE);
-        consts!(methods; MAGENTA);
-        consts!(methods; YELLOW);
-        consts!(methods; CYAN);
-    }
-
-    fn register(registry: &mut mlua::prelude::LuaUserDataRegistry<Self>) {
-        Self::add_fields(registry);
-        Self::add_methods(registry);
+        impl_const!(methods; "white" => WHITE);
+        impl_const!(methods; "black" => BLACK);
+        impl_const!(methods; "grey" => GREY);
+        impl_const!(methods; "red" => RED);
+        impl_const!(methods; "green" => GREEN);
+        impl_const!(methods; "blue" => BLUE);
+        impl_const!(methods; "magenta" => MAGENTA);
+        impl_const!(methods; "yellow" => YELLOW);
+        impl_const!(methods; "cyan" => CYAN);
     }
 }
 
