@@ -1,8 +1,11 @@
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::{
+    fmt::Debug,
+    ops::{Add, Div, Mul, Neg, Sub},
+};
 
 use mlua::{IntoLua, Value};
 
-pub trait Number: Add + Sub + Div + Mul + Sized + Copy + Neg + IntoLua + Default {
+pub trait Number: Add + Sub + Div + Mul + Sized + Copy + Neg + IntoLua + Default + Debug {
     fn type_name() -> &'static str;
     fn try_from(value: Value) -> Result<Self, mlua::Error>;
 }
