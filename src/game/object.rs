@@ -12,7 +12,7 @@ impl Object {
         Self { local }
     }
 
-    pub fn call_function(&self, name: &str, args: impl IntoLuaMulti) -> Result<()> {
+    pub fn emit(&self, name: &str, args: impl IntoLuaMulti) -> Result<()> {
         self.local
             .call_method(name, args)
             .map(|_: Value| ())
