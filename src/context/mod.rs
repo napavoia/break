@@ -6,6 +6,7 @@ pub use self::window::Window;
 use crate::{
     error::Result,
     game::{Game, Status},
+    lua,
 };
 
 pub mod builder;
@@ -26,20 +27,26 @@ impl Context {
         let game = shared(Game::new(canvas, event));
 
         let lua = Lua::new();
+
+        let globals = lua.globals();
+        globals.set("tracing", lua::utils::tracing(&lua)?)?;
+
+        lua::print(&lua)?;
+        lua::math(&lua)?;
+
         lua.globals().set("game", game.clone())?;
 
         Ok(Self { lua, game, _sdl })
     }
 
     pub fn run<P: AsRef<Path>>(&mut self, main: P) -> Status {
-        let result = self.lua.load(main.as_ref()).exec();
-
-        dbg!(&result);
+        if let Err(err) = self.lua.load(main.as_ref()).exec() {
+            return Some(crate::game::Runtime::CompilingError(err));
+        }
 
         loop {
             let mut game = self.game.borrow_mut();
             if let Some(runtime) = game.tick() {
-                dbg!(&runtime);
                 return Some(runtime);
             }
         }
