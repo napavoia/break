@@ -16,9 +16,10 @@ use crate::{
 pub type Index = u64;
 pub type Status = Option<Runtime>;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub enum Runtime {
     Exit,
+    CompilingError(mlua::Error),
 }
 
 pub struct Game {
@@ -69,7 +70,7 @@ impl Game {
     }
 
     pub fn update(&mut self) -> Status {
-        self.call("update", mlua::Nil);
+        self.emit("update", mlua::Nil);
 
         None
     }
@@ -86,27 +87,28 @@ impl Game {
         None
     }
 
-    pub fn call<L>(&self, name: &str, args: L)
+    pub fn emit<L>(&self, name: &str, args: L)
     where
         L: IntoLuaMulti + Clone,
     {
         if let Some(list) = self.events.get(name) {
             list.iter().for_each(|i| {
                 if let Some(obj) = self.objects.get(i)
-                    && let Err(err) = obj.call_function(name, args.clone())
+                    && let Err(err) = obj.emit(name, args.clone())
                 {
-                    dbg!(&err);
+                    tracing::warn!(target: "Break", "{}", err);
                 }
             });
         }
     }
 
-    pub fn hook(&mut self, object: Index, name: String) {
+    pub fn subscribe(&mut self, object: Index, name: String) {
         match self.events.contains_key(&name) {
             true => {
                 let _ = self.events.get_mut(&name).unwrap().insert(object);
             }
             false => {
+                tracing::info!(target: "Break", "New event created - \"{}\"", name);
                 let _ = self.events.insert(name, HashSet::from([object]));
             }
         }
