@@ -2,7 +2,6 @@
 
 ---@class Game
 ---@field window Window
----@field color Color
 ---@field inner_events table inner game event name
 game = {}
 
@@ -12,11 +11,11 @@ function game:instantiate(table) end
 
 ---@param object GameObject
 ---@param func string
-function game:hook(object, func) end
+function game:subscribe(object, func) end
 
 ---@param func string
 ---@param ... any
-function game:call(func, ...) end
+function game:emit(func, ...) end
 
 ---@class Window
 ---@field size Size
@@ -32,7 +31,7 @@ function window:set_size(width, height) end
 ---@param color Color
 function window:set_color(color) end
 
----@param position IVector2
+---@param position Vector2
 function window:set_position(position) end
 
 ---@param resizable boolean
@@ -59,133 +58,159 @@ function window:minimize() end
 function window:restore() end
 
 ---@class Color
----@field r uint number in range [0; 255]
----@field g uint number in range [0; 255]
----@field b uint number in range [0; 255]
----@field a uint number in range [0; 255]
+---@field r subpixel
+---@field g subpixel
+---@field b subpixel
+---@field a subpixel
 color = {}
 
+---
+--- Create color with fields [r, g, b, a]
+---
 ---@return Color
----@param r uint number in range [0; 255]
----@param g uint number in range [0; 255]
----@param b uint number in range [0; 255]
----@param a uint number in range [0; 255]
-function color:rgba(r, g, b, a) end
+---@param r subpixel
+---@param g subpixel
+---@param b subpixel
+---@param a subpixel
+function color.rgba(r, g, b, a) end
 
----@return Color Color with rgb and a: 255
----@param r uint number in range [0; 255]
----@param g uint number in range [0; 255]
----@param b uint number in range [0; 255]
-function color:rgb(r, g, b) end
+---
+--- Create color with fields [r, g, b, a: 255]
+---
+---@return Color
+---@param r subpixel
+---@param g subpixel
+---@param b subpixel
+function color.rgb(r, g, b) end
+
+---
+--- Transform number in subpixel [0; 255]
+---
+---@return subpixel
+---@param n number
+function color.subpixel(n) end
 
 ---@return Color
-function color:invert() end
+---@param color Color
+function color.invert(color) end
 
 ---@return Color Color with r: 255 g:255 b:255 a:255
-function color:WHITE() end
+function color.white() end
 
 ---@return Color Color with r:0 g:0 b:0 a:255
-function color:BLACK() end
+function color.black() end
 
 ---@return Color Color with r:128 g:128 b:128 a:255
-function color:GREY() end
+function color.grey() end
 
 ---@return Color Color with r:255 g:0 b:0 a:255
-function color:RED() end
+function color.red() end
 
 ---@return Color Color with r:0 g:255 b:0 a:255
-function color:GREEN() end
+function color.green() end
 
 ---@return Color Color with r:0 g:0 b:255 a:255
-function color:BLUE() end
+function color.blue() end
 
 ---@return Color Color with r:255 g:0 b:255 a:255
-function color:MAGENTA() end
+function color.magenta() end
 
 ---@return Color Color with r:255 g:255 b:0 a:255
-function color:YELLOW() end
+function color.yellow() end
 
 ---@return Color Color with r:0 g:255 b:255 a:255
-function color:CYAN() end
+function color.cyan() end
 
 ---@package
 ---@class Size
 ---@field width number
 ---@field height number
-size = {}
+_ = {}
 
 ---@package
 ---@class GameObject
-__gameobject = {}
+_ = {}
+
+---
+--- Subpixel is number in range [0; 255]
+---
+---@package
+---@class subpixel: number
+_ = {}
 
 ---@package
----@class float: number
-__float = {}
+---@class Vector2: Vector
+---@field x number
+---@field y number
+_ = {}
 
 ---@package
----@class int: number
-__int = {}
+---@class Vector3: Vector
+---@field x number
+---@field y number
+---@field z number
+_ = {}
 
 ---@package
----@class uint: number
-__uint = {}
-
----@class IVector2: Vector
----@field x int
----@field y int
+---@class Vector4: Vector
+---@field x number
+---@field y number
+---@field z number
+---@field w number
 _ = {}
 
----@class FVector2: Vector
----@field x float
----@field y float
-_ = {}
-
----@class IVector3: Vector
----@field x int
----@field y int
----@field z int
-_ = {}
-
----@class FVector3: Vector
----@field x float
----@field y float
----@field z float
-_ = {}
-
----@class IVector4: Vector
----@field x int
----@field y int
----@field z int
----@field w int
-_ = {}
-
----@class FVector4: Vector
----@field x float
----@field y float
----@field z float
----@field w float
-_ = {}
-
+---@package
 ---@class Vector
 vector = {}
 
----@return IVector2 IVector2 if number integer
----@return FVector2 FVector2 if number float
+---@return Vector2
 ---@param x number
 ---@param y number
-function vector:new2d(x, y) end
+function vector.new2d(x, y) end
 
----@return IVector3 IVector3 if number integer
----@return FVector3 FVector3 if number float
+---@return Vector3
 ---@param x number
 ---@param y number
 ---@param z number
-function vector:new3d(x, y, z) end
+function vector.new3d(x, y, z) end
 
----@return IVector4 IVector4 if number integer
----@return FVector4 FVector4 if number float
+---@return Vector4
 ---@param x number
 ---@param y number
 ---@param z number
 ---@param w number
-function vector:new4d(x, y, z, w) end
+function vector.new4d(x, y, z, w) end
+
+---@class tracelib
+---@field debug_mode boolean
+tracing = {}
+
+---
+--- Print message with level ERROR
+---
+---@param ... any
+function tracing.error(...) end
+
+---
+--- Print message with level WARN
+---
+---@param ... any
+function tracing.warn(...) end
+
+---
+--- Print message with level INFO
+---
+---@see print is equal to this function
+---@param ... any
+function tracing.info(...) end
+
+---
+--- Print message only in debug mode
+---
+---@param ... any
+function tracing.debug(...) end
+
+---@class math: mathlib
+---@field vector Vector
+---@field color Color
+math = {}
