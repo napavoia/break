@@ -17,20 +17,15 @@ impl UserData for Game {
             Ok(this.instantiate(local))
         });
 
-        methods.add_method_mut("hook", |_, this, (obj, name): (Index, String)| {
-            let _: () = this.hook(obj, name);
+        methods.add_method_mut("subscribe", |_, this, (obj, name): (Index, String)| {
+            let _: () = this.subscribe(obj, name);
             Ok(())
         });
 
-        methods.add_method_mut("call", |_, this, (name, args): (String, MultiValue)| {
-            let _: () = this.call(&name, args);
+        methods.add_method_mut("emit", |_, this, (name, args): (String, MultiValue)| {
+            let _: () = this.emit(&name, args);
             Ok(())
         });
-    }
-
-    fn register(registry: &mut mlua::prelude::LuaUserDataRegistry<Self>) {
-        Self::add_fields(registry);
-        Self::add_methods(registry);
     }
 }
 
