@@ -4,9 +4,9 @@ mod vector;
 mod window;
 
 #[macro_export]
-macro_rules! add_method {
+macro_rules! impl_method {
     ($methods:ident; $f:ident) => {
-        add_method!($methods; stringify!($f) => $f())
+        impl_method!($methods; stringify!($f) => $f())
     };
     ($methods:ident; $name:expr => $f:ident()) => {
         $methods.add_method_mut($name, |_, this, _: MultiValue| {
@@ -14,7 +14,7 @@ macro_rules! add_method {
         })
     };
     ($methods:ident;; $f:ident($($v:ident: $t:ty),*)) => {
-        add_method!($methods; stringify!($f) => $f($($v: $t),*))
+        impl_method!($methods; stringify!($f) => $f($($v: $t),*))
     };
     ($methods:ident; $name:expr => $f:ident($($v:ident: $t:ty),*)) => {
         $methods.add_method_mut($name, |_, this, ($($v,)*): ($($t,)*)| {
@@ -24,7 +24,7 @@ macro_rules! add_method {
     };
 
     ($methods:ident;; $f:ident($($v:ident: $t:ty),*) -> Ok) => {
-        add_method!($methods; stringify!($f) => $f($($v: $t),*) -> Ok)
+        impl_method!($methods; stringify!($f) => $f($($v: $t),*) -> Ok)
     };
     ($methods:ident; $name:expr => $f:ident($($v:ident: $t:ty),*) -> Ok) => {
         $methods.add_method_mut($name, |_, this, ($($v,)*): ($($t,)*)| {
@@ -38,15 +38,15 @@ macro_rules! add_method {
 }
 
 #[macro_export]
-macro_rules! getset {
+macro_rules! impl_gs {
     (get $fields:ident; $f:ident) => {
-        getset!(get $fields; stringify!($f) => $f)
+        impl_gs!(get $fields; stringify!($f) => $f)
     };
     (get $fields:ident; $name:expr => $f:ident) => {
         $fields.add_field_method_get($name, |_, this| Ok(this.0.$f))
     };
     (set $fields:ident; $f:ident is $t:ty) => {
-        getset!(set $fields; stringify!($f) => $f is $t)
+        impl_gs!(set $fields; stringify!($f) => $f is $t)
     };
     (set $fields:ident; $name:expr => $f:ident is $t:ty) => {
         $fields.add_field_method_set($name, |_, this, v: $t| {
@@ -56,20 +56,28 @@ macro_rules! getset {
     };
 
     (getset $fields:ident; $f:ident is $t:ty) => {
-        getset!(getset $fields; stringify!($f) => $f is $t)
+        impl_gs!(getset $fields; stringify!($f) => $f is $t)
     };
     (getset $fields:ident; $name:expr => $f:ident is $t:ty) => {
-        getset!(get $fields; stringify!($f) => $f);
-        getset!(set $fields; stringify!($f) => $f is $t);
+        impl_gs!(get $fields; stringify!($f) => $f);
+        impl_gs!(set $fields; stringify!($f) => $f is $t);
     };
 }
 
 #[macro_export]
-macro_rules! consts {
+macro_rules! impl_const {
     ($methods:ident; $f:ident) => {
-        consts!($methods; stringify!($f) => $f)
+        impl_const!($methods; stringify!($f) => $f)
     };
     ($methods:ident; $name:expr => $f:ident) => {
-        $methods.add_method($name, |_, _, _: Value| Ok(Self::$f))
+        $methods.add_function($name, |_, _: Value| Ok(Self::$f))
+    };
+}
+
+#[macro_export]
+macro_rules! impl_display {
+    ($methods:ident) => {
+        use mlua::{MetaMethod::ToString, MultiValue};
+        $methods.add_meta_method(ToString, |_, this, _: MultiValue| Ok(this.to_string()));
     };
 }
